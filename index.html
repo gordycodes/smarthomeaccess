@@ -329,7 +329,7 @@
                     <!-- Dynamic content will be injected here -->
                     <p class="text-center text-gray-500">No information entered yet. Please fill out the form.</p>
                 </div>
-                <div id="-message" class="mt-4 text-center text-lg font-medium"></div>
+                <div id="submission-message" class="mt-4 text-center text-lg font-medium"></div>
                 <div class="bg-gray-800 border-l-4 border-emerald-500 text-gray-200 p-4 rounded-md shadow-sm mt-6" role="alert">
                     <p class="font-bold mb-2">Important:</p>
                     <p class="text-sm">
@@ -352,7 +352,7 @@
 
     <script>
         // Placeholder for a real backend API endpoint that would handle email sending
-        const SUBMISSION_ENDPOINT = "https://smart-home-access-zytf.onrender.com"; // REPLACE WITH YOUR ACTUAL ENDPOINT
+        const SUBMISSION_ENDPOINT = "https://smart-home-access-zytf.onrender.com/submit-form-data"; // Replace with your ACTUAL Render backend URL
 
         // Function to get a URL parameter by name
         function getUrlParameter(name) {
@@ -387,19 +387,18 @@
         const nextButton = document.getElementById('next-button');
         const formTitle = document.getElementById('form-title');
         const reviewContent = document.getElementById('review-content');
-        const submissionMessage = document.getElementById('submission-message');
+        const submissionMessage = document.getElementById('submission-message'); // Correctly declared and linked
         const projectManagerEmailHiddenInput = document.getElementById('project_manager_email_hidden');
         const homeNameHiddenInput = document.getElementById('home_name_hidden'); // Get the new hidden input
-
-        // Set the hidden input values immediately on load
-        projectManagerEmailHiddenInput.value = PROJECT_MANAGER_EMAIL_FROM_URL;
-        homeNameHiddenInput.value = HOME_NAME_FROM_URL; // Store raw home name for backend
 
         // Core state variables for form navigation
         let currentStep = 0;
         let formData = {}; // Object to store all form data
-        // totalSteps depends on formSteps, so it needs to be declared after formSteps is defined.
-        const totalSteps = formSteps.length; 
+        const totalSteps = formSteps.length; // Needs to be declared after formSteps is defined
+
+        // Set the hidden input values immediately on load
+        projectManagerEmailHiddenInput.value = PROJECT_MANAGER_EMAIL_FROM_URL;
+        homeNameHiddenInput.value = HOME_NAME_FROM_URL; // Store raw home name for backend
 
 
         // Function to update the displayed Project Manager email
@@ -488,17 +487,19 @@
 
         // Function to validate current step before proceeding
         function validateStep(step) {
+            // Clear any previous error messages before validating
+            submissionMessage.textContent = '';
+            submissionMessage.classList.remove('text-red-500', 'text-green-500', 'text-gray-400');
+
             if (step === 0) { // On the first step, ensure PM email and Home Name are provided in URL
                 if (!PROJECT_MANAGER_EMAIL_FROM_URL || !PROJECT_MANAGER_EMAIL_FROM_URL.includes('@') || !PROJECT_MANAGER_EMAIL_FROM_URL.includes('.')) {
                     submissionMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Project Manager Email not provided in URL or is invalid. Please ensure the URL includes `?pmEmail=your.email@domain.com`.';
-                    submissionMessage.classList.remove('text-gray-400', 'text-green-500');
                     submissionMessage.classList.add('text-red-500');
                     return false;
                 }
                 // Also validate homeName presence on step 0
                 if (!HOME_NAME_FROM_URL) {
                     submissionMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Home name not provided in URL. Please ensure the URL includes `&homeName=your_home_name`.';
-                    submissionMessage.classList.remove('text-gray-400', 'text-green-500');
                     submissionMessage.classList.add('text-red-500');
                     return false;
                 }
@@ -514,7 +515,6 @@
                     // Optional fields, so no strict validation here for *empty*
                 }
             }
-            submissionMessage.textContent = ''; // Clear previous messages
             return true; // Allows progression if all validation passes
         }
 
@@ -777,7 +777,6 @@
         // Initialize the form on load
         showStep(currentStep);
         updateProjectManagerEmailDisplay(); // Call initially to set default PM email text
-        // The updateFormTitle is now called inside showStep, so no need to call it separately here.
     </script>
 </body>
 </html>
