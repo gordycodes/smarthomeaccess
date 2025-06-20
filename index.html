@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Access Request</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom CSS for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a; /* Dark black background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        /* Custom styling for radio/checkbox appearance */
+        input[type="radio"]:checked + label,
+        input[type="checkbox"]:checked + label {
+            border-color: #4ade80; /* Green border for checked items (Wander green) */
+            background-color: #2b3b2b; /* Darker green background for checked items */
+        }
+        /* Hide default radio/checkbox */
+        input[type="radio"],
+        input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        /* Style the custom indicator */
+        input[type="radio"] + label::before,
+        input[type="checkbox"] + label::before {
+            content: '';
+            display: inline-block;
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+            border: 2px solid #555; /* Darker gray border */
+            border-radius: 9999px; /* For radio buttons (circles) */
+            margin-right: 0.5rem; /* 8px */
+            vertical-align: middle;
+            transition: all 0.2s ease-in-out;
+        }
+        input[type="checkbox"] + label::before {
+            border-radius: 0.25rem; /* For checkbox (square) */
+        }
+        input[type="radio"]:checked + label::before {
+            background-color: #4ade80; /* Green fill */
+            border-color: #4ade80;
+            box-shadow: inset 0 0 0 4px #1a1a1a; /* Inner black circle */
+        }
+        input[type="checkbox"]:checked + label::before {
+            background-color: #4ade80; /* Green fill */
+            border-color: #4ade80;
+            content: '\2713'; /* Checkmark character */
+            color: #1a1a1a; /* Dark text for checkmark */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.75rem; /* 12px */
+            font-weight: bold;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4ade80; /* Green glow on focus */
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.5); /* Semi-transparent green glow */
+        }
+    </style>
+</head>
+<body>
+    <div id="form-container" class="bg-gray-900 p-8 rounded-xl shadow-lg w-full max-w-2xl border border-gray-700">
+        <h1 id="form-title" class="text-3xl font-bold text-white mb-6 text-center">Access Request Form</h1>
+
+        <!-- Hidden inputs for Project Manager's Email and Home Name -->
+        <input type="hidden" id="project_manager_email_hidden" name="project_manager_email">
+        <input type="hidden" id="home_name_hidden" name="home_name">
+
+        <!-- Form Steps Container -->
+        <div id="form-steps">
+            <!-- Step 1: Welcome and Privacy Notice -->
+            <div id="step-1" class="form-step">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Welcome!</h2>
+                <p class="text-gray-300 mb-6">
+                    This form helps us securely gather necessary information to set up and optimize your smart home and Wi-Fi systems.
+                    We will guide you through providing access to various accounts, one at a time.
+                </p>
+                <div class="bg-gray-800 border-l-4 border-emerald-500 text-gray-200 p-4 rounded-md shadow-sm mb-6" role="alert">
+                    <p class="font-bold mb-2">Privacy Notice:</p>
+                    <p class="text-sm">
+                        All information shared through this form is handled with the utmost security and confidentiality.
+                        It will be used strictly for the purpose of configuring and servicing your smart home and Wi-Fi systems,
+                        and will not be shared with any third parties. We use encrypted channels and secure storage for all data.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 2: WiFi ISP Login -->
+            <div id="step-2" class="form-step hidden">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Wi-Fi ISP Account Access</h2>
+                <p class="text-gray-300 mb-6">
+                    We need access to your Internet Service Provider (ISP) account (e.g., Spectrum, Cox, Xfinity) to update your primary Wi-Fi network name to our standardized 'Wander' name with 'happyplace' password (both case sensitive). Please choose how you'd like to proceed:
+                </p>
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <input type="radio" id="isp-option-self" name="isp_access_method" value="self" class="hidden" checked>
+                        <label for="isp-option-self" class="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-800 text-gray-200">
+                            <i class="fas fa-user-edit text-xl text-emerald-400 mr-3"></i>
+                            <span class="font-medium">I will do this myself via my ISP app/website.</span>
+                        </label>
+                    </div>
+                    <div>
+                        <input type="radio" id="isp-option-avtech" name="isp_access_method" value="av_tech" class="hidden">
+                        <label for="isp-option-avtech" class="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-800 text-gray-200">
+                            <i class="fas fa-headset text-xl text-emerald-400 mr-3"></i>
+                            <span class="font-medium">Share your AV Tech's contact info.</span>
+                        </label>
+                    </div>
+                    <div>
+                        <input type="radio" id="isp-option-login" name="isp_access_method" value="login" class="hidden">
+                        <label for="isp-option-login" class="flex items-center p-4 border border-gray-600 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-800 text-gray-200">
+                            <i class="fas fa-lock text-xl text-emerald-400 mr-3"></i>
+                            <span class="font-medium">Share your ISP login credentials.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="isp-avtech-fields" class="space-y-4 hidden mb-6">
+                    <div>
+                        <label for="isp_av_tech_name" class="block text-sm font-medium text-gray-300 mb-1">AV Tech Name (Optional)</label>
+                        <input type="text" id="isp_av_tech_name" name="isp_av_tech_name" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="John Doe">
+                    </div>
+                    <div>
+                        <label for="isp_av_tech_phone" class="block text-sm font-medium text-gray-300 mb-1">AV Tech Phone (Optional)</label>
+                        <input type="tel" id="isp_av_tech_phone" name="isp_av_tech_phone" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="(123) 456-7890">
+                    </div>
+                </div>
+
+                <div id="isp-login-fields" class="space-y-4 hidden mb-6">
+                    <div>
+                        <label for="isp_username" class="block text-sm font-medium text-gray-300 mb-1">Username / Email (Optional)</label>
+                        <input type="text" id="isp_username" name="isp_username" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="your_email@example.com">
+                    </div>
+                    <div>
+                        <label for="isp_password" class="block text-sm font-medium text-gray-300 mb-1">Password (Optional)</label>
+                        <input type="password" id="isp_password" name="isp_password" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="***********">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Access Points (Eero, Google Wifi, etc.) -->
+            <div id="step-3" class="form-step hidden">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Access Point Account Access</h2>
+                <p class="text-gray-300 mb-6">
+                    (e.g., Eero, Google Wifi, Ubiquiti, Netgear Orbi)
+                </p>
+                <div class="mb-4">
+                    <input type="checkbox" id="ap_not_applicable" name="ap_not_applicable" class="hidden">
+                    <label for="ap_not_applicable" class="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-800 text-gray-200">
+                        <span class="font-medium">Not Applicable (I don't have a separate access point account or don't want to share).</span>
+                    </label>
+                </div>
+
+                <div id="ap-fields">
+                    <p class="text-sm text-gray-300 mb-4 bg-gray-800 border-l-4 border-yellow-500 p-3 rounded-md shadow-sm">
+                        <i class="fas fa-info-circle mr-2 text-yellow-400"></i>
+                        <strong>If your system supports it:</strong> Please add <span class="font-bold text-emerald-400" id="project-manager-email-ap"></span> as an administrator or guest user directly in your access point app.
+                    </p>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="ap_username" class="block text-sm font-medium text-gray-300 mb-1">Username / Email (Optional)</label>
+                            <input type="text" id="ap_username" name="ap_username" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="your_email@example.com">
+                        </div>
+                        <div>
+                            <label for="ap_password" class="block text-sm font-medium text-gray-300 mb-1">Password (Optional)</label>
+                            <input type="password" id="ap_password" name="ap_password" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="***********">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Sonos Accounts -->
+            <div id="step-4" class="form-step hidden">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Sonos Account Access</h2>
+                <div class="mb-4">
+                    <input type="checkbox" id="sonos_not_applicable" name="sonos_not_applicable" class="hidden">
+                    <label for="sonos_not_applicable" class="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-800 text-gray-200">
+                        <span class="font-medium">Not Applicable (I don't have a Sonos account or don't want to share).</span>
+                    </label>
+                </div>
+                <div id="sonos-fields">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="sonos_username" class="block text-sm font-medium text-gray-300 mb-1">Username / Email (Optional)</label>
+                            <input type="text" id="sonos_username" name="sonos_username" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="your_email@example.com">
+                        </div>
+                        <div>
+                            <label for="sonos_password" class="block text-sm font-medium text-gray-300 mb-1">Password (Optional)</label>
+                            <input type="password" id="sonos_password" name="sonos_password" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="***********">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Camera Systems -->
+            <div id="step-5" class="form-step hidden">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Camera System Access</h2>
+                <p class="text-gray-300 mb-6">
+                    (e.g., Ring, Nest, Arlo, SimpliSafe, Lorex)
+                </p>
+                <div class="mb-4">
+                    <input type="checkbox" id="camera_not_applicable" name="camera_not_applicable" class="hidden">
+                    <label for="camera_not_applicable" class="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-800 text-gray-200">
+                        <span class="font-medium">Not Applicable (I don't have a camera system or don't want to share).</span>
+                    </label>
+                </div>
+                <div id="camera-fields">
+                    <p class="text-sm text-gray-300 mb-4 bg-gray-800 border-l-4 border-yellow-500 p-3 rounded-md shadow-sm">
+                        <i class="fas fa-info-circle mr-2 text-yellow-400"></i>
+                        <strong>If your system supports it:</strong> Please add <span class="font-bold text-emerald-400" id="project-manager-email-camera"></span> as an administrator or guest user directly in your camera system app.
+                    </p>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="camera_username" class="block text-sm font-medium text-gray-300 mb-1">Username / Email (Optional)</label>
+                            <input type="text" id="camera_username" name="camera_username" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="your_email@example.com">
+                        </div>
+                        <div>
+                            <label for="camera_password" class="block text-sm font-medium text-gray-300 mb-1">Password (Optional)</label>
+                            <input type="password" id="camera_password" name="camera_password" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="***********">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Smart Locks and Door Codes -->
+            <div id="step-6" class="form-step hidden">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Smart Lock & Door Code Access</h2>
+                <p class="text-gray-300 mb-6">
+                    (e.g., August, Yale, Schlage Encode)
+                </p>
+                <div class="mb-4">
+                    <input type="checkbox" id="lock_not_applicable" name="lock_not_applicable" class="hidden">
+                    <label for="lock_not_applicable" class="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-800 text-gray-200">
+                        <span class="font-medium">Not Applicable (I don't have smart locks or don't want to share).</span>
+                    </label>
+                </div>
+                <div id="lock-fields">
+                    <p class="text-sm text-gray-300 mb-4 bg-gray-800 border-l-4 border-yellow-500 p-3 rounded-md shadow-sm">
+                        <i class="fas fa-info-circle mr-2 text-yellow-400"></i>
+                        <strong>If your system supports it:</strong> Please add <span class="font-bold text-emerald-400" id="project-manager-email-lock"></span> as an administrator or guest user for your smart locks directly in their app.
+                    </p>
+                    <div class="space-y-4 mb-4">
+                        <div>
+                            <label for="lock_username" class="block text-sm font-medium text-gray-300 mb-1">Smart Lock Username / Email (Optional)</label>
+                            <input type="text" id="lock_username" name="lock_username" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="your_email@example.com">
+                        </div>
+                        <div>
+                            <label for="lock_password" class="block text-sm font-medium text-gray-300 mb-1">Password (Optional)</label>
+                            <input type="password" id="lock_password" name="lock_password" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="***********">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="door_codes" class="block text-sm font-medium text-gray-300 mb-1">Any Door Codes / Keypad Codes (Optional)</label>
+                        <textarea id="door_codes" name="door_codes" rows="3" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="e.g., Front Door: 1234, Side Door: 5678"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Other Relevant Accounts -->
+            <div id="step-7" class="form-step hidden">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Other Smart Home Accounts</h2>
+                <p class="text-gray-300 mb-6">
+                    (e.g., Smart Thermostats like Ecobee/Nest, Smart Lighting like Philips Hue, Other Hubs)
+                </p>
+                <div class="mb-4">
+                    <input type="checkbox" id="other_not_applicable" name="other_not_applicable" class="hidden">
+                    <label for="other_not_applicable" class="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer transition duration-200 ease-in-out hover:bg-gray-800 text-gray-200">
+                        <span class="font-medium">Not Applicable (I don't have other smart home accounts or don't want to share).</span>
+                    </label>
+                </div>
+                <div id="other-fields">
+                    <p class="text-sm text-gray-300 mb-4 bg-gray-800 border-l-4 border-yellow-500 p-3 rounded-md shadow-sm">
+                        <i class="fas fa-info-circle mr-2 text-yellow-400"></i>
+                        <strong>If your system supports it:</strong> Please add <span class="font-bold text-emerald-400" id="project-manager-email-other"></span> as an administrator or guest user directly in your app.
+                    </p>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="other_account_name" class="block text-sm font-medium text-gray-300 mb-1">Account Name / Type (Optional)</label>
+                            <input type="text" id="other_account_name" name="other_account_name" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="e.g., Philips Hue, Ecobee">
+                        </div>
+                        <div>
+                            <label for="other_username" class="block text-sm font-medium text-gray-300 mb-1">Username / Email (Optional)</label>
+                            <input type="text" id="other_username" name="other_username" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="your_email@example.com">
+                        </div>
+                        <div>
+                            <label for="other_password" class="block text-sm font-medium text-gray-300 mb-1">Password (Optional)</label>
+                            <input type="password" id="other_password" name="other_password" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="***********">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 8: Any Other Credentials -->
+            <div id="step-8" class="form-step hidden">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Any Other Credentials to Share?</h2>
+                <p class="text-gray-300 mb-6">
+                    If there are any other usernames or passwords for smart home, entertainment, or network devices that you wish to share with us, please provide them below.
+                </p>
+                <div>
+                    <label for="misc_credentials" class="block text-sm font-medium text-gray-300 mb-1">Other Usernames / Passwords (Optional)</label>
+                    <textarea id="misc_credentials" name="misc_credentials" rows="6" class="block w-full p-3 border border-gray-600 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-gray-800 text-white placeholder-gray-500" placeholder="e.g., Apple TV login, Gaming Console account, custom network devices..."></textarea>
+                </div>
+            </div>
+
+            <!-- Step 9: Review/Confirmation -->
+            <div id="step-9" class="form-step hidden">
+                <h2 class="text-2xl font-semibold text-gray-100 mb-4">Review Your Information</h2>
+                <p class="text-gray-300 mb-6">
+                    Please review the information you've provided below. If anything needs adjustment, use the "Back" button to navigate to previous sections.
+                </p>
+                <div id="review-content" class="bg-gray-800 p-6 rounded-lg border border-gray-700 text-gray-200 break-all">
+                    <!-- Dynamic content will be injected here -->
+                    <p class="text-center text-gray-500">No information entered yet. Please fill out the form.</p>
+                </div>
+                <div id="submission-message" class="mt-4 text-center text-lg font-medium"></div>
+                <div class="bg-gray-800 border-l-4 border-emerald-500 text-gray-200 p-4 rounded-md shadow-sm mt-6" role="alert">
+                    <p class="font-bold mb-2">Important:</p>
+                    <p class="text-sm">
+                        This is a demonstration form. In a real application, submitted data would be securely transmitted to your backend system, which would then handle email dispatch.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between mt-8">
+            <button id="back-button" class="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-200 ease-in-out flex items-center" style="box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);" disabled>
+                <i class="fas fa-arrow-left mr-2"></i> Back
+            </button>
+            <button id="next-button" class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-75 transition duration-200 ease-in-out flex items-center" style="box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);">
+                Next <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Placeholder for a real backend API endpoint that would handle email sending
+        const SUBMISSION_ENDPOINT = "http://localhost:3000/submit-form-data"; // REPLACE WITH YOUR ACTUAL ENDPOINT
+
+        // Function to get a URL parameter by name
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        };
+
+        // Project Manager's Email determined from URL or default
+        const PROJECT_MANAGER_EMAIL_FROM_URL = getUrlParameter('pmEmail');
+        const DEFAULT_PM_EMAIL_TEXT = "your Project Manager's Wander email";
+        let currentProjectManagerEmail = PROJECT_MANAGER_EMAIL_FROM_URL || DEFAULT_PM_EMAIL_TEXT;
+
+        // Home Name determined from URL or default
+        const HOME_NAME_FROM_URL = getUrlParameter('homeName');
+        const DEFAULT_HOME_NAME_TEXT = "Account Information"; // Default if no home name is provided
+        let currentHomeName = HOME_NAME_FROM_URL ? formatHomeNameForDisplay(HOME_NAME_FROM_URL) : DEFAULT_HOME_NAME_TEXT;
+
+        // Function to format home name for display (e.g., 'bend_riverside' -> 'Bend Riverside')
+        function formatHomeNameForDisplay(name) {
+            if (!name) return DEFAULT_HOME_NAME_TEXT;
+            return name.replace(/_/g, ' ') // Replace underscores with spaces
+                       .split(' ') // Split into words
+                       .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+                       .join(' '); // Join back with spaces
+        }
+
+        // DOM Elements
+        const formSteps = document.querySelectorAll('.form-step');
+        const backButton = document.getElementById('back-button');
+        const nextButton = document.getElementById('next-button');
+        const formTitle = document.getElementById('form-title');
+        const reviewContent = document.getElementById('review-content');
+        const submissionMessage = document.getElementById('submission-message');
+        const projectManagerEmailHiddenInput = document.getElementById('project_manager_email_hidden');
+        const homeNameHiddenInput = document.getElementById('home_name_hidden'); // Get the new hidden input
+
+        // Set the hidden input values immediately on load
+        projectManagerEmailHiddenInput.value = PROJECT_MANAGER_EMAIL_FROM_URL;
+        homeNameHiddenInput.value = HOME_NAME_FROM_URL; // Store raw home name for backend
+
+        // Core state variables for form navigation
+        let currentStep = 0;
+        let formData = {}; // Object to store all form data
+        // totalSteps depends on formSteps, so it needs to be declared after formSteps is defined.
+        const totalSteps = formSteps.length; 
+
+
+        // Function to update the displayed Project Manager email
+        function updateProjectManagerEmailDisplay() {
+            const emailSpans = document.querySelectorAll('[id^="project-manager-email-"]');
+            emailSpans.forEach(span => {
+                span.textContent = currentProjectManagerEmail;
+            });
+        }
+
+        // Function to update the form title based on the current step and home name
+        function updateFormTitle(step) {
+            let baseTitle;
+            const stepTitles = [
+                "Access Request Form",
+                "Wi-Fi ISP Account Access",
+                "Access Point Account Access",
+                "Sonos Account Access",
+                "Camera System Access",
+                "Smart Lock & Door Code Access",
+                "Other Smart Home Accounts",
+                "Any Other Credentials",
+                "Review Your Information"
+            ];
+            baseTitle = stepTitles[step];
+
+            // If it's the first step, apply the "Home Name Account Information" format
+            if (step === 0 && HOME_NAME_FROM_URL) {
+                formTitle.textContent = `${currentHomeName} Account Information`;
+            } else {
+                formTitle.textContent = baseTitle;
+            }
+        }
+
+        // Function to show a specific step
+        function showStep(step) {
+            formSteps.forEach((stepElement, index) => {
+                if (index === step) {
+                    stepElement.classList.remove('hidden');
+                } else {
+                    stepElement.classList.add('hidden');
+                }
+            });
+            updateNavigationButtons();
+            updateFormTitle(step); // Update title here
+            if (step === totalSteps - 1) {
+                generateReviewContent();
+            }
+        }
+
+        // Function to update navigation button states
+        function updateNavigationButtons() {
+            backButton.disabled = currentStep === 0;
+            if (currentStep === totalSteps - 1) {
+                nextButton.textContent = 'Submit';
+                nextButton.innerHTML = 'Submit <i class="fas fa-check ml-2"></i>';
+            } else {
+                nextButton.textContent = 'Next';
+                nextButton.innerHTML = 'Next <i class="fas fa-arrow-right ml-2"></i>';
+            }
+        }
+
+        // Function to collect data from the current step's fields
+        function collectStepData(step) {
+            const currentStepElement = formSteps[step];
+            const inputs = currentStepElement.querySelectorAll('input:not([type="hidden"]), textarea'); // Exclude hidden inputs from this collection
+            inputs.forEach(input => {
+                let value;
+                if (input.type === 'radio') {
+                    if (input.checked) {
+                        value = input.value;
+                    } else {
+                        return; // Skip if not checked
+                    }
+                } else if (input.type === 'checkbox') {
+                    value = input.checked;
+                } else {
+                    value = input.value;
+                }
+                formData[input.name] = value;
+            });
+            // Always ensure the hidden PM email and Home Name are in formData
+            formData['project_manager_email'] = projectManagerEmailHiddenInput.value;
+            formData['home_name'] = homeNameHiddenInput.value;
+        }
+
+        // Function to validate current step before proceeding
+        function validateStep(step) {
+            if (step === 0) { // On the first step, ensure PM email and Home Name are provided in URL
+                if (!PROJECT_MANAGER_EMAIL_FROM_URL || !PROJECT_MANAGER_EMAIL_FROM_URL.includes('@') || !PROJECT_MANAGER_EMAIL_FROM_URL.includes('.')) {
+                    submissionMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Project Manager Email not provided in URL or is invalid. Please ensure the URL includes `?pmEmail=your.email@domain.com`.';
+                    submissionMessage.classList.remove('text-gray-400', 'text-green-500');
+                    submissionMessage.classList.add('text-red-500');
+                    return false;
+                }
+                // Also validate homeName presence on step 0
+                if (!HOME_NAME_FROM_URL) {
+                    submissionMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Home name not provided in URL. Please ensure the URL includes `&homeName=your_home_name`.';
+                    submissionMessage.classList.remove('text-gray-400', 'text-green-500');
+                    submissionMessage.classList.add('text-red-500');
+                    return false;
+                }
+            } else if (step === 1) { // ISP Account Step
+                const ispMethod = document.querySelector('input[name="isp_access_method"]:checked').value;
+                if (ispMethod === 'av_tech') {
+                    const techName = document.getElementById('isp_av_tech_name').value.trim();
+                    const techPhone = document.getElementById('isp_av_tech_phone').value.trim();
+                    // Optional fields, so no strict validation here for *empty*
+                } else if (ispMethod === 'login') {
+                    const username = document.getElementById('isp_username').value.trim();
+                    const password = document.getElementById('isp_password').value.trim();
+                    // Optional fields, so no strict validation here for *empty*
+                }
+            }
+            submissionMessage.textContent = ''; // Clear previous messages
+            return true; // Allows progression if all validation passes
+        }
+
+        // Function to handle form submission
+        async function handleSubmit() {
+            nextButton.disabled = true; // Disable button to prevent multiple submissions
+            backButton.disabled = true;
+            submissionMessage.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Submitting your information...';
+            submissionMessage.classList.remove('text-red-500', 'text-green-500');
+            submissionMessage.classList.add('text-gray-400');
+
+            try {
+                // The hidden PM email and Home Name are already in formData from collectStepData
+                const response = await fetch(SUBMISSION_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                if (response.ok) {
+                    submissionMessage.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Information submitted successfully!';
+                    submissionMessage.classList.remove('text-gray-400');
+                    submissionMessage.classList.add('text-green-500');
+                    // Optionally clear form data or navigate to a thank you page
+                    // formData = {}; // Uncomment to clear data after successful submission
+                } else {
+                    // Handle server errors (e.g., 400, 500 status codes)
+                    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    submissionMessage.innerHTML = `<i class="fas fa-times-circle mr-2"></i> Submission failed: ${errorData.message || 'Server error.'}`;
+                    submissionMessage.classList.remove('text-gray-400');
+                    submissionMessage.classList.add('text-red-500');
+                    console.error('Submission error:', response.status, errorData);
+                }
+            } catch (error) {
+                // Handle network errors (e.g., endpoint unreachable)
+                submissionMessage.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> Network error: Could not connect to server.`;
+                submissionMessage.classList.remove('text-gray-400');
+                submissionMessage.classList.add('text-red-500');
+                console.error('Network error during submission:', error);
+            } finally {
+                nextButton.disabled = false; // Re-enable button
+                backButton.disabled = false;
+            }
+        }
+
+        // Function to generate review content
+        function generateReviewContent() {
+            let contentHtml = '<h3 class="text-xl font-bold mb-4 text-emerald-400">Summary of Provided Information:</h3>';
+            let hasData = false;
+
+            const displayField = (label, value) => {
+                if (value && String(value).trim() !== '' && value !== false) { // Also check for boolean false
+                    hasData = true;
+                    return `<p><strong class="text-gray-100">${label}:</strong> ${value}</p>`;
+                }
+                return '';
+            };
+
+            // Home Name
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Home Name:</h4>`;
+            contentHtml += displayField('Name', currentHomeName);
+
+
+            // Project Manager Email
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Your Project Manager's Email:</h4>`;
+            contentHtml += displayField('Email', currentProjectManagerEmail);
+
+
+            // ISP Account
+            let ispAccessMethod = formData['isp_access_method'];
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Wi-Fi ISP Account:</h4>`;
+            if (ispAccessMethod) {
+                switch (ispAccessMethod) {
+                    case 'self':
+                        contentHtml += `<p class="text-gray-300"><i class="fas fa-check-circle text-emerald-500 mr-2"></i>Homeowner will update network name themselves.</p>`;
+                        break;
+                    case 'av_tech':
+                        contentHtml += `<p class="text-gray-300"><i class="fas fa-info-circle text-emerald-500 mr-2"></i>AV Tech Contact Provided:</p>`;
+                        contentHtml += displayField('AV Tech Name', formData['isp_av_tech_name']);
+                        contentHtml += displayField('AV Tech Phone', formData['isp_av_tech_phone']);
+                        break;
+                    case 'login':
+                        contentHtml += `<p class="text-gray-300"><i class="fas fa-lock text-yellow-400 mr-2"></i>ISP Login Credentials Provided:</p>`;
+                        contentHtml += displayField('Username/Email', formData['isp_username']);
+                        contentHtml += displayField('Password', formData['isp_password'] ? '********' : ''); // Mask password
+                        break;
+                }
+                hasData = true;
+            } else {
+                contentHtml += `<p class="text-gray-500"><i class="fas fa-times-circle text-red-500 mr-2"></i>No ISP access method selected.</p>`;
+            }
+
+            // Access Points
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Access Point Account:</h4>`;
+            if (formData['ap_not_applicable']) {
+                contentHtml += `<p class="text-gray-300"><i class="fas fa-times-circle text-red-500 mr-2"></i>Not Applicable.</p>`;
+            } else {
+                contentHtml += displayField('Username/Email', formData['ap_username']);
+                contentHtml += displayField('Password', formData['ap_password'] ? '********' : ''); // Mask password
+                if (formData['ap_username'] || formData['ap_password']) hasData = true;
+                if (!formData['ap_username'] && !formData['ap_password']) {
+                    contentHtml += `<p class="text-gray-400"><i class="fas fa-exclamation-triangle text-orange-400 mr-2"></i>No login provided. Please add ${currentProjectManagerEmail} as admin.</p>`;
+                } else {
+                    contentHtml += `<p class="text-gray-300"><i class="fas fa-info-circle text-emerald-500 mr-2"></i>Admin access instruction: Please add ${currentProjectManagerEmail}.</p>`;
+                }
+            }
+
+            // Sonos Accounts
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Sonos Account:</h4>`;
+            if (formData['sonos_not_applicable']) {
+                contentHtml += `<p class="text-gray-300"><i class="fas fa-times-circle text-red-500 mr-2"></i>Not Applicable.</p>`;
+            } else {
+                contentHtml += displayField('Username/Email', formData['sonos_username']);
+                contentHtml += displayField('Password', formData['sonos_password'] ? '********' : ''); // Mask password
+                if (formData['sonos_username'] || formData['sonos_password']) hasData = true;
+                if (!formData['sonos_username'] && !formData['sonos_password']) {
+                    contentHtml += `<p class="text-gray-400"><i class="fas fa-exclamation-triangle text-orange-400 mr-2"></i>No login provided.</p>`;
+                }
+            }
+
+            // Camera Systems
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Camera System Account:</h4>`;
+            if (formData['camera_not_applicable']) {
+                contentHtml += `<p class="text-gray-300"><i class="fas fa-times-circle text-red-500 mr-2"></i>Not Applicable.</p>`;
+            } else {
+                contentHtml += displayField('Username/Email', formData['camera_username']);
+                contentHtml += displayField('Password', formData['camera_password'] ? '********' : ''); // Mask password
+                if (formData['camera_username'] || formData['camera_password']) hasData = true;
+                if (!formData['camera_username'] && !formData['camera_password']) {
+                    contentHtml += `<p class="text-gray-400"><i class="fas fa-exclamation-triangle text-orange-400 mr-2"></i>No login provided. Please add ${currentProjectManagerEmail} as admin.</p>`;
+                } else {
+                    contentHtml += `<p class="text-gray-300"><i class="fas fa-info-circle text-emerald-500 mr-2"></i>Admin access instruction: Please add ${currentProjectManagerEmail}.</p>`;
+                }
+            }
+
+            // Smart Locks & Door Codes
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Smart Locks & Door Codes:</h4>`;
+            if (formData['lock_not_applicable']) {
+                contentHtml += `<p class="text-gray-300"><i class="fas fa-times-circle text-red-500 mr-2"></i>Not Applicable.</p>`;
+            } else {
+                contentHtml += displayField('Username/Email', formData['lock_username']);
+                contentHtml += displayField('Password', formData['lock_password'] ? '********' : ''); // Mask password
+                contentHtml += displayField('Door Codes', formData['door_codes']);
+                if (formData['lock_username'] || formData['lock_password'] || formData['door_codes']) hasData = true;
+                if (!formData['lock_username'] && !formData['lock_password'] && !formData['door_codes']) {
+                    contentHtml += `<p class="text-gray-400"><i class="fas fa-exclamation-triangle text-orange-400 mr-2"></i>No login/codes provided. Please add ${currentProjectManagerEmail} as admin.</p>`;
+                } else {
+                    contentHtml += `<p class="text-gray-300"><i class="fas fa-info-circle text-emerald-500 mr-2"></i>Admin access instruction: Please add ${currentProjectManagerEmail}.</p>`;
+                }
+            }
+
+            // Other Smart Home Accounts
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Other Smart Home Accounts:</h4>`;
+            if (formData['other_not_applicable']) {
+                contentHtml += `<p class="text-gray-300"><i class="fas fa-times-circle text-red-500 mr-2"></i>Not Applicable.</p>`;
+            } else {
+                contentHtml += displayField('Account Name/Type', formData['other_account_name']);
+                contentHtml += displayField('Username/Email', formData['other_username']);
+                contentHtml += displayField('Password', formData['other_password'] ? '********' : ''); // Mask password
+                if (formData['other_account_name'] || formData['other_username'] || formData['other_password']) hasData = true;
+                if (!formData['other_account_name'] && !formData['other_username'] && !formData['other_password']) {
+                    contentHtml += `<p class="text-gray-400"><i class="fas fa-exclamation-triangle text-orange-400 mr-2"></i>No login provided. Please add ${currentProjectManagerEmail} as admin.</p>`;
+                } else {
+                    contentHtml += `<p class="text-gray-300"><i class="fas fa-info-circle text-emerald-500 mr-2"></i>Admin access instruction: Please add ${currentProjectManagerEmail}.</p>`;
+                }
+            }
+
+            // Miscellaneous Credentials
+            contentHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 text-gray-200">Any Other Credentials:</h4>`;
+            if (formData['misc_credentials'] && formData['misc_credentials'].trim() !== '') {
+                contentHtml += `<p class="whitespace-pre-wrap text-gray-300">${formData['misc_credentials']}</p>`;
+                hasData = true;
+            } else {
+                contentHtml += `<p class="text-gray-300"><i class="fas fa-info-circle text-gray-400 mr-2"></i>No additional credentials shared.</p>`;
+            }
+
+            // Check if any significant data was entered, beyond just the PM email and home name
+            const anyOtherRelevantData = Object.keys(formData).some(key => {
+                return key !== 'project_manager_email' && key !== 'home_name' && formData[key] && String(formData[key]).trim() !== '' && formData[key] !== false;
+            });
+
+            if (!anyOtherRelevantData && !currentProjectManagerEmail && !HOME_NAME_FROM_URL) {
+                reviewContent.innerHTML = '<p class="text-center text-gray-500">No information entered yet. Please fill out the form.</p>';
+            } else {
+                reviewContent.innerHTML = contentHtml;
+            }
+        }
+
+
+        // Event Listeners for ISP radio buttons
+        const ispRadioButtons = document.querySelectorAll('input[name="isp_access_method"]');
+        const ispAvTechFields = document.getElementById('isp-avtech-fields');
+        const ispLoginFields = document.getElementById('isp-login-fields');
+
+        ispRadioButtons.forEach(radio => {
+            radio.addEventListener('change', () => {
+                ispAvTechFields.classList.add('hidden');
+                ispLoginFields.classList.add('hidden');
+                if (radio.value === 'av_tech') {
+                    ispAvTechFields.classList.remove('hidden');
+                } else if (radio.value === 'login') {
+                    ispLoginFields.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Trigger initial state for ISP fields based on default checked radio
+        document.querySelector('input[name="isp_access_method"]:checked').dispatchEvent(new Event('change'));
+
+        // Event Listeners for 'Not Applicable' checkboxes
+        function setupNotApplicable(checkboxId, fieldsId) {
+            const checkbox = document.getElementById(checkboxId);
+            const fieldsDiv = document.getElementById(fieldsId);
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    fieldsDiv.classList.add('hidden');
+                    // Optionally clear fields when "Not Applicable" is checked
+                    Array.from(fieldsDiv.querySelectorAll('input, textarea')).forEach(input => {
+                        input.value = '';
+                        if (input.type === 'checkbox' || input.type === 'radio') {
+                            input.checked = false;
+                        }
+                    });
+                } else {
+                    fieldsDiv.classList.remove('hidden');
+                }
+            });
+        }
+
+        setupNotApplicable('ap_not_applicable', 'ap-fields');
+        setupNotApplicable('sonos_not_applicable', 'sonos-fields');
+        setupNotApplicable('camera_not_applicable', 'camera-fields');
+        setupNotApplicable('lock_not_applicable', 'lock-fields');
+        setupNotApplicable('other_not_applicable', 'other-fields');
+
+
+        // Navigation button event listeners
+        nextButton.addEventListener('click', () => {
+            if (validateStep(currentStep)) {
+                collectStepData(currentStep); // Collect data from current step before moving
+                if (currentStep < totalSteps - 1) {
+                    currentStep++;
+                    showStep(currentStep);
+                } else {
+                    // This is the "Submit" action
+                    handleSubmit(); // Call the async submission function
+                }
+            }
+        });
+
+        backButton.addEventListener('click', () => {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        });
+
+        // Initialize the form on load
+        showStep(currentStep);
+        updateProjectManagerEmailDisplay(); // Call initially to set default PM email text
+        // The updateFormTitle is now called inside showStep, so no need to call it separately here.
+    </script>
+</body>
+</html>
